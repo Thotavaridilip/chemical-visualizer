@@ -127,7 +127,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 # Check if frontend build exists before adding it
 _frontend_dist = BASE_DIR.parent / 'frontend' / 'dist'
 if _frontend_dist.exists():
@@ -135,8 +135,8 @@ if _frontend_dist.exists():
 else:
     STATICFILES_DIRS = []
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-# WhiteNoise storage compresses and serves files efficiently
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+# Use CompressedStaticFilesStorage to support Vite's pre-hashed assets
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
 # Media files
 MEDIA_URL = '/media/'
