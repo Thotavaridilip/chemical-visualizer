@@ -174,4 +174,5 @@ CSRF_TRUSTED_ORIGINS = [
     "http://localhost:8081",
     "http://127.0.0.1:8080",
     "http://127.0.0.1:8081",
+    "https://chemical-visualizer-q5kp.onrender.com",
 ]

@@ -198,6 +198,7 @@ class PDFReportView(APIView):
         buffer.seek(0)
         return FileResponse(buffer, as_attachment=True, filename='equipment-report.pdf')
 
+@method_decorator(csrf_exempt, name='dispatch')
 class RegisterView(APIView):
     permission_classes = [AllowAny]
 
@@ -217,6 +218,7 @@ class RegisterView(APIView):
 import base64
 from django.contrib.auth import authenticate
 
+@method_decorator(csrf_exempt, name='dispatch')
 class LoginView(APIView):
     permission_classes = [AllowAny]
 
