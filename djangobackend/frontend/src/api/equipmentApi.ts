@@ -8,6 +8,15 @@ export const login = async (username: string, password: string) => {
   return token;
 };
 
+export const register = async (username: string, email: string, password: string) => {
+  const res = await axios.post(`${API_BASE}/register/`, {
+    username,
+    email,
+    password,
+  });
+  return res.data;
+};
+
 export const uploadCSV = async (file: File, token: string) => {
   const formData = new FormData();
   formData.append('file', file);
