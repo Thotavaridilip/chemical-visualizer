@@ -29,6 +29,9 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-e2ovm0l8&8=#x8zu^v#$z
 DEBUG = os.environ.get('DEBUG', 'true').lower() == 'true'
 
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+# Add Render hostname if available
+if 'RENDER_EXTERNAL_HOSTNAME' in os.environ:
+    ALLOWED_HOSTS.append(os.environ['RENDER_EXTERNAL_HOSTNAME'])
 
 
 # Application definition
@@ -125,7 +128,12 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
-STATICFILES_DIRS = [BASE_DIR.parent / 'frontend' / 'dist']
+# Check if frontend build exists before adding it
+_frontend_dist = BASE_DIR.parent / 'frontend' / 'dist'
+if _frontend_dist.exists():
+    STATICFILES_DIRS = [_frontend_dist]
+else:
+    STATICFILES_DIRS = []
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 # WhiteNoise storage compresses and serves files efficiently
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
