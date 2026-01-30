@@ -48,3 +48,7 @@ export const downloadPDF = async (token: string) => {
   });
   return res.data;
 };
+
+export const loadSampleData = async () => {
+  const res = await axios.get(`${API_BASE}/load-sample/`);
+  return res.data;
