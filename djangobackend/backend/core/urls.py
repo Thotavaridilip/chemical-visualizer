@@ -16,12 +16,12 @@ Including another URLconf
 """
 
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import path, include, re_path
 from django.views.generic import TemplateView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('equipment.urls')),
-    # Serve frontend index.html at root (if built)
-    path('', TemplateView.as_view(template_name='index.html')),
+    # Serve React frontend for all other routes
+    re_path(r'^.*$', TemplateView.as_view(template_name='index.html')),
 ]
