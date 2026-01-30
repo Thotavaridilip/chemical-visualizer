@@ -1,0 +1,4 @@
+Equipment Name,Type,Flowrate,Pressure,Temperature
+Reactor A,Batch Reactor,120.5,5.2,350
+Pump P1,Centrifugal Pump,80.0,3.1,45
+Heat Exchanger HX1,Shell and Tube,200.0,6.8,180

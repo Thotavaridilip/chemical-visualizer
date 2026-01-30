@@ -1,0 +1,14 @@
+Django>=4.2
+pandas
+reportlab
+djangorestframework
+djangorestframework-simplejwt
+django-cors-headers
+# Postgres and deployment helpers
+psycopg2-binary
+dj-database-url
+whitenoise
+gunicorn
+# Optional: use S3 for media in production
+# django-storages[boto3]
+# boto3

@@ -1,0 +1,16 @@
+Equipment Name,Type,Flowrate,Pressure,Temperature
+Pump A,Pump,150.5,25.3,75.2
+Valve B,Valve,200.0,30.1,80.5
+Tank C,Tank,0.0,15.2,65.8
+Pump D,Pump,175.8,28.7,78.9
+Valve E,Valve,180.2,32.4,82.1
+Heat Exchanger F,Heat Exchanger,220.5,35.6,85.3
+Pump G,Pump,160.3,26.8,76.4
+Valve H,Valve,190.7,31.2,81.7
+Tank I,Tank,0.0,18.9,68.2
+Compressor J,Compressor,250.0,40.5,90.1
+Pump K,Pump,145.6,24.1,74.8
+Valve L,Valve,210.3,33.8,83.6
+Tank M,Tank,0.0,16.7,67.3
+Heat Exchanger N,Heat Exchanger,235.9,38.2,87.4
+Pump O,Pump,155.2,27.5,77.1

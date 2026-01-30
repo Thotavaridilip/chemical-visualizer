@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, chemical-visualizer ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  backend-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - name: Install backend dependencies
+        run: |
+          python -m venv .venv
+          . .venv/bin/activate
+          pip install --upgrade pip setuptools wheel
+          pip install -r djangobackend/backend/requirements.txt
+      - name: Run migrations
+        run: |
+          . .venv/bin/activate
+          python djangobackend/backend/manage.py migrate --noinput
+      - name: Run backend tests
+        run: |
+          . .venv/bin/activate
+          python djangobackend/backend/manage.py test --verbosity=2
+
+  frontend-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      - name: Install frontend dependencies
+        run: |
+          cd djangobackend/frontend
+          npm ci
+      - name: Run frontend tests
+        run: |
+          cd djangobackend/frontend
+          npm test --if-present

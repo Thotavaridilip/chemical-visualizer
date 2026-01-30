@@ -1,0 +1,44 @@
+name: Backend CI & Migrations
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  test-and-migrate:
+    runs-on: ubuntu-latest
+    env:
+      # Use DATABASE_URL from repository secrets if present
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run tests
+        run: python manage.py test --verbosity=2
+
+      - name: Run migrations (if DATABASE_URL provided)
+        if: env.DATABASE_URL != ''
+        run: |
+          echo "Running migrate using DATABASE_URL (from secrets)"
+          python manage.py migrate --noinput
+
+      - name: Collect static files
+        if: env.DATABASE_URL != ''
+        run: python manage.py collectstatic --noinput
+
+      - name: Deploy placeholder
+        run: |
+          echo "Add your deployment step here (e.g., Render/Fly/Railway/Heroku) using your platform's CLI or API and required secrets."
+
+# WARNING: This workflow runs migrations using the supplied DATABASE_URL (GitHub Secret). Use a test DB first and ensure secrets are correct before enabling automated migrations on production.
