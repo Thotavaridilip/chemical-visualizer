@@ -147,7 +147,7 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # Django REST Framework settings
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.BasicAuthentication',
+        'core.authentication.BasicAuthenticationNoBrowserPopup',
         'rest_framework.authentication.SessionAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
@@ -165,6 +165,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:5173",
     "http://localhost:3000",
     "http://127.0.0.1:3000",
+    "https://chemical-visualizer-q5kp.onrender.com",
 ]
 
 CORS_ALLOW_CREDENTIALS = True
