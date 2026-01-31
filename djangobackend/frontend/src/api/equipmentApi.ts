@@ -5,8 +5,15 @@ import axios from 'axios';
 const API_BASE = import.meta.env.PROD ? '/api' : 'http://localhost:8000/api';
 
 export const login = async (username: string, password: string) => {
-  const token = btoa(`${username}:${password}`);
-  return token;
+  try {
+    const res = await axios.post(`${API_BASE}/login/`, {
+      username_or_email: username,
+      password: password,
+    });
+    return res.data.token;
+  } catch (error) {
+    throw new Error('Login failed');
+  }
 };
 
 export const register = async (username: string, email: string, password: string) => {

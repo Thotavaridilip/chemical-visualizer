@@ -156,6 +156,8 @@ REST_FRAMEWORK = {
 }
 
 # CORS settings
+# Allow all origins for development (more permissive)
+CORS_ALLOW_ALL_ORIGINS = DEBUG  # Allow all origins in development
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:8080",
     "http://localhost:8081",
@@ -165,14 +167,34 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:5173",
     "http://localhost:3000",
     "http://127.0.0.1:3000",
+    "http://localhost:4173",  # Vite preview
+    "http://127.0.0.1:4173",
     "https://chemical-visualizer-q5kp.onrender.com",
 ]
 
 CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
+
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:8080",
     "http://localhost:8081",
     "http://127.0.0.1:8080",
     "http://127.0.0.1:8081",
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "http://localhost:4173",
+    "http://127.0.0.1:4173",
     "https://chemical-visualizer-q5kp.onrender.com",
 ]
