@@ -28,7 +28,7 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-e2ovm0l8&8=#x8zu^v#$z
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DEBUG', 'true').lower() == 'true'
 
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1,chemical-visualizer-q5kp.onrender.com').split(',')
 # Add Render hostname if available
 if 'RENDER_EXTERNAL_HOSTNAME' in os.environ:
     ALLOWED_HOSTS.append(os.environ['RENDER_EXTERNAL_HOSTNAME'])
@@ -153,11 +153,16 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.AllowAny',
     ],
+    # Add renderer classes for better error handling
+    'DEFAULT_RENDERER_CLASSES': [
+        'rest_framework.renderers.JSONRenderer',
+    ],
 }
 
 # CORS settings
 # Allow all origins for development (more permissive)
-CORS_ALLOW_ALL_ORIGINS = DEBUG  # Allow all origins in development
+# Temporarily allow all origins for production debugging
+CORS_ALLOW_ALL_ORIGINS = True  # Allow all origins temporarily
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:8080",
     "http://localhost:8081",
@@ -183,7 +188,21 @@ CORS_ALLOW_HEADERS = [
     'user-agent',
     'x-csrftoken',
     'x-requested-with',
+    'cache-control',
+    'x-csrf-token',
 ]
+
+# Additional CORS settings for production
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+]
+
+CORS_PREFLIGHT_MAX_AGE = 86400
 
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:8080",

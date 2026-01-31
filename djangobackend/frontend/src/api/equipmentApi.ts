@@ -42,6 +42,16 @@ export const uploadCSV = async (file: File, token: string) => {
   return res.data;
 };
 
+export const uploadCSVAnonymous = async (file: File) => {
+  const formData = new FormData();
+  formData.append('file', file);
+  const res = await axios.post(`${API_BASE}/upload/`, formData);
+  return res.data;
+};
+  });
+  return res.data;
+};
+
 export const getSummary = async (token: string) => {
   const res = await axios.get(`${API_BASE}/summary/`, {
     headers: { Authorization: `Basic ${token}` },

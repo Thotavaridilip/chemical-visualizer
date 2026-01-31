@@ -13,9 +13,11 @@ from django.conf import settings
 from reportlab.pdfgen import canvas
 from django.http import FileResponse
 from django.contrib.auth.models import User
+from django.contrib.auth import authenticate
 import os
 import time
 import logging
+import base64
 
 @method_decorator(csrf_exempt, name='dispatch')
 class UploadCSVView(APIView):
@@ -224,9 +226,6 @@ class RegisterView(APIView):
             return Response({'error': 'email already exists'}, status=status.HTTP_400_BAD_REQUEST)
         user = User.objects.create_user(username=username, email=email, password=password)
         return Response({'username': user.username, 'email': user.email}, status=status.HTTP_201_CREATED)
-
-import base64
-from django.contrib.auth import authenticate
 
 @method_decorator(csrf_exempt, name='dispatch')
 class LoginView(APIView):

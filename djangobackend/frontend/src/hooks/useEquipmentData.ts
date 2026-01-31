@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { EquipmentData, DataSummary, UploadHistory } from '@/types/equipment';
-import { uploadCSV, getSummary, getHistory, downloadPDF } from '@/api/equipmentApi';
+import { uploadCSV, uploadCSVAnonymous, getSummary, getHistory, downloadPDF } from '@/api/equipmentApi';
 import { useAuth } from '@/contexts/AuthContext';
 
 export const useEquipmentData = () => {
@@ -12,14 +12,17 @@ export const useEquipmentData = () => {
   const [error, setError] = useState<string | null>(null);
 
   const processFile = useCallback(async (file: File) => {
-    if (!token) {
-      setError('Not authenticated');
-      return;
-    }
     setIsLoading(true);
     setError(null);
     try {
-      const result = await uploadCSV(file, token);
+      let result;
+      if (token) {
+        // Use authenticated upload if token available
+        result = await uploadCSV(file, token);
+      } else {
+        // Use anonymous upload if no token
+        result = await uploadCSVAnonymous(file);
+      }
       setSummary(result.summary ?? null);
       await loadHistory();
     } catch (err) {
