@@ -23,17 +23,35 @@ class UploadCSVView(APIView):
     permission_classes = [AllowAny]  # Allow unauthenticated access for demo purposes
 
     def post(self, request, *args, **kwargs):
+        # Debug logging
+        logger = logging.getLogger(__name__)
+        logger.info(f"Upload request received. Files: {list(request.FILES.keys())}")
+        
         file_obj = request.FILES.get('file')
         if not file_obj:
+            logger.error("No file in request.FILES")
             return Response({'error': 'No file uploaded'}, status=400)
+        
+        logger.info(f"File received: {file_obj.name}, size: {file_obj.size}")
         
         # Validate file extension
         if not file_obj.name.endswith('.csv'):
+            logger.error(f"Invalid file extension: {file_obj.name}")
             return Response({'error': 'Only CSV files are allowed'}, status=400)
         
-        # Save file temporarily
-        file_path = default_storage.save('tmp/' + file_obj.name, file_obj)
-        abs_path = os.path.join(settings.MEDIA_ROOT, file_path)
+        # Save file temporarily with error handling
+        try:
+            # Ensure media directories exist
+            media_root = settings.MEDIA_ROOT
+            tmp_dir = os.path.join(media_root, 'tmp')
+            os.makedirs(tmp_dir, exist_ok=True)
+            
+            file_path = default_storage.save('tmp/' + file_obj.name, file_obj)
+            abs_path = os.path.join(settings.MEDIA_ROOT, file_path)
+            logger.info(f"File saved to: {abs_path}")
+        except Exception as e:
+            logger.error(f"Failed to save file: {str(e)}")
+            return Response({'error': f'Failed to save file: {str(e)}'}, status=400)
         
         # Write a small debug snapshot of the uploaded file (first bytes)
         logger = logging.getLogger(__name__)
@@ -63,24 +81,21 @@ class UploadCSVView(APIView):
             return Response({'error': f'Missing required columns: {", ".join(missing)}. Found columns: {", ".join(df.columns)}'}, status=400)
         summary = self.get_summary(df)
         
-        # Handle both authenticated and anonymous users
-        user = request.user if request.user.is_authenticated else None
-        
+        # Create dataset without user field (removed in migration)
         dataset = EquipmentDataset.objects.create(
-            user=user,
             file_name=file_obj.name,
             record_count=len(df),
             summary=summary,
             csv_file=file_obj
         )
         
-        # Keep only last 5 for this user (only if authenticated)
-        if user:
-            qs = EquipmentDataset.objects.filter(user=user)
-            if qs.count() > 5:
-                for obj in qs[5:]:
-                    obj.csv_file.delete()
-                    obj.delete()
+        # Keep only last 5 datasets
+        total_count = EquipmentDataset.objects.count()
+        if total_count > 5:
+            old_datasets = EquipmentDataset.objects.all()[5:]
+            for obj in old_datasets:
+                obj.csv_file.delete()
+                obj.delete()
         return Response(EquipmentDatasetSerializer(dataset).data)
 
     def get_summary(self, df):
@@ -117,29 +132,20 @@ class SummaryView(APIView):
     def get(self, request):
         dataset_id = request.query_params.get('id')
         if dataset_id:
-            # If user is authenticated, filter by user, otherwise get any dataset with that ID
-            if request.user.is_authenticated:
-                dataset = EquipmentDataset.objects.filter(id=dataset_id, user=request.user).first()
-            else:
-                dataset = EquipmentDataset.objects.filter(id=dataset_id).first()
+            # Get dataset by ID (no user filtering since user field was removed)
+            dataset = EquipmentDataset.objects.filter(id=dataset_id).first()
             if not dataset:
                 return Response({'error': 'Dataset not found'}, status=404)
             return Response(dataset.summary)
         # Try to find a dataset with valid equipment data (has avgFlowrate)
-        if request.user.is_authenticated:
-            datasets_to_check = EquipmentDataset.objects.filter(user=request.user)
-        else:
-            datasets_to_check = EquipmentDataset.objects.all()[:10]  # Limit for anonymous users
+        datasets_to_check = EquipmentDataset.objects.all()[:10]  # Get recent datasets
             
         for dataset in datasets_to_check:
             if dataset.summary and dataset.summary.get('avgFlowrate') is not None:
                 return Response(dataset.summary)
         
-        # Fallback to latest
-        if request.user.is_authenticated:
-            latest = EquipmentDataset.objects.filter(user=request.user).first()
-        else:
-            latest = EquipmentDataset.objects.first()
+        # Fallback to latest dataset
+        latest = EquipmentDataset.objects.first()
         if not latest:
             return Response({'error': 'No data'}, status=404)
         return Response(latest.summary)
@@ -147,11 +153,8 @@ class SummaryView(APIView):
 class HistoryView(APIView):
     permission_classes = [AllowAny]
     def get(self, request):
-        # If unauthenticated, return recent datasets across users (empty or public)
-        if request.user and request.user.is_authenticated:
-            qs = EquipmentDataset.objects.filter(user=request.user)[:5]
-        else:
-            qs = EquipmentDataset.objects.all()[:5]
+        # Return recent datasets (user field no longer exists)
+        qs = EquipmentDataset.objects.all()[:5]
         return Response(EquipmentDatasetSerializer(qs, many=True).data)
 
 class DataView(APIView):
@@ -163,18 +166,12 @@ class DataView(APIView):
         # Build candidate list: requested dataset first (if any), otherwise all for this user
         candidates = []
         if dataset_id:
-            if request.user.is_authenticated:
-                requested = EquipmentDataset.objects.filter(id=dataset_id, user=request.user).first()
-            else:
-                requested = EquipmentDataset.objects.filter(id=dataset_id).first()
+            requested = EquipmentDataset.objects.filter(id=dataset_id).first()
             if not requested:
                 return Response({'error': 'Dataset not found'}, status=404)
             candidates.append(requested)
         else:
-            if request.user.is_authenticated:
-                candidates = list(EquipmentDataset.objects.filter(user=request.user))
-            else:
-                candidates = list(EquipmentDataset.objects.all()[:10])  # Limit for anonymous users
+            candidates = list(EquipmentDataset.objects.all()[:10])  # Get recent datasets
 
         # Find the most recent candidate that contains numeric Flowrate or Pressure
         for dataset in candidates:
