@@ -48,9 +48,6 @@ export const uploadCSVAnonymous = async (file: File) => {
   const res = await axios.post(`${API_BASE}/upload/`, formData);
   return res.data;
 };
-  });
-  return res.data;
-};
 
 export const getSummary = async (token: string) => {
   const res = await axios.get(`${API_BASE}/summary/`, {
