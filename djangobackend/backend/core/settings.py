@@ -148,7 +148,6 @@ MEDIA_ROOT = BASE_DIR / 'media'
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'core.authentication.BasicAuthenticationNoBrowserPopup',
-        'rest_framework.authentication.SessionAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.AllowAny',
@@ -217,3 +216,7 @@ CSRF_TRUSTED_ORIGINS = [
     "http://127.0.0.1:4173",
     "https://chemical-visualizer-q5kp.onrender.com",
 ]
+
+# Disable CSRF for API endpoints (token-based auth doesn't need CSRF protection)
+CSRF_COOKIE_HTTPONLY = False
+CSRF_USE_SESSIONS = False
