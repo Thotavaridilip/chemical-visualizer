@@ -240,56 +240,55 @@ class LoginView(APIView):
             return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
         token = base64.b64encode(f"{username}:{password}".encode()).decode()
         return Response({'token': token, 'username': username})
-#   A p p e n d   t o   v i e w s . p y   -   L o a d S a m p l e D a t a V i e w  
- #   A d d   t h i s   a t   t h e   e n d   o f   t h e   f i l e  
-  
- @ m e t h o d _ d e c o r a t o r ( c s r f _ e x e m p t ,   n a m e = ' d i s p a t c h ' )  
- c l a s s   L o a d S a m p l e D a t a V i e w ( A P I V i e w ) :  
-         p e r m i s s i o n _ c l a s s e s   =   [ A l l o w A n y ]  
-  
-         d e f   g e t ( s e l f ,   r e q u e s t ) :  
-                 i m p o r t   o s  
-                 f r o m   d j a n g o . c o n f   i m p o r t   s e t t i n g s  
-                  
-                 #   L o a d   s a m p l e   C S V   f r o m   r o o t   o f   d j a n g o b a c k e n d  
-                 s a m p l e _ p a t h   =   o s . p a t h . j o i n ( s e t t i n g s . B A S E _ D I R ,   ' . . ' ,   ' s a m p l e _ e q u i p m e n t _ d a t a . c s v ' )  
-                  
-                 t r y :  
-                         d f   =   p d . r e a d _ c s v ( s a m p l e _ p a t h )  
-                         #   R e t u r n   s u m m a r y   l i k e   t h e   u p l o a d   e n d p o i n t   d o e s  
-                         s u m m a r y   =   s e l f . _ g e t _ s u m m a r y ( d f )  
-                         r e t u r n   R e s p o n s e ( {  
-                                 ' m e s s a g e ' :   ' S a m p l e   d a t a   l o a d e d ' ,  
-                                 ' t o t a l C o u n t ' :   l e n ( d f ) ,  
-                                 ' s u m m a r y ' :   s u m m a r y ,  
-                                 ' d a t a ' :   d f . t o _ d i c t ( ' r e c o r d s ' )  
-                         } ,   s t a t u s = s t a t u s . H T T P _ 2 0 0 _ O K )  
-                 e x c e p t   E x c e p t i o n   a s   e :  
-                         r e t u r n   R e s p o n s e ( { ' e r r o r ' :   f ' F a i l e d   t o   l o a d   s a m p l e   d a t a :   { s t r ( e ) } ' } ,   s t a t u s = s t a t u s . H T T P _ 4 0 0 _ B A D _ R E Q U E S T )  
-          
-         d e f   _ g e t _ s u m m a r y ( s e l f ,   d f ) :  
-                 d e f   f i n d _ c o l ( k e y ) :  
-                         f o r   c   i n   d f . c o l u m n s :  
-                                 i f   c . l o w e r ( )   = =   k e y . l o w e r ( ) :  
-                                         r e t u r n   d f [ c ]  
-                         r e t u r n   N o n e  
-                  
-                 f l o w   =   f i n d _ c o l ( ' F l o w r a t e ' )  
-                 p r e s s u r e   =   f i n d _ c o l ( ' P r e s s u r e ' )  
-                 t e m p   =   f i n d _ c o l ( ' T e m p e r a t u r e ' )  
-                 t y p   =   f i n d _ c o l ( ' T y p e ' )  
-                  
-                 r e t u r n   {  
-                         ' t o t a l C o u n t ' :   l e n ( d f ) ,  
-                         ' a v g F l o w r a t e ' :   f l o a t ( f l o w . m e a n ( ) )   i f   f l o w   i s   n o t   N o n e   a n d   n o t   f l o w . e m p t y   e l s e   N o n e ,  
-                         ' a v g P r e s s u r e ' :   f l o a t ( p r e s s u r e . m e a n ( ) )   i f   p r e s s u r e   i s   n o t   N o n e   a n d   n o t   p r e s s u r e . e m p t y   e l s e   N o n e ,  
-                         ' a v g T e m p e r a t u r e ' :   f l o a t ( t e m p . m e a n ( ) )   i f   t e m p   i s   n o t   N o n e   a n d   n o t   t e m p . e m p t y   e l s e   N o n e ,  
-                         ' t y p e D i s t r i b u t i o n ' :   t y p . v a l u e _ c o u n t s ( ) . t o _ d i c t ( )   i f   t y p   i s   n o t   N o n e   e l s e   { } ,  
-                         ' m i n F l o w r a t e ' :   f l o a t ( f l o w . m i n ( ) )   i f   f l o w   i s   n o t   N o n e   a n d   n o t   f l o w . e m p t y   e l s e   N o n e ,  
-                         ' m a x F l o w r a t e ' :   f l o a t ( f l o w . m a x ( ) )   i f   f l o w   i s   n o t   N o n e   a n d   n o t   f l o w . e m p t y   e l s e   N o n e ,  
-                         ' m i n P r e s s u r e ' :   f l o a t ( p r e s s u r e . m i n ( ) )   i f   p r e s s u r e   i s   n o t   N o n e   a n d   n o t   p r e s s u r e . e m p t y   e l s e   N o n e ,  
-                         ' m a x P r e s s u r e ' :   f l o a t ( p r e s s u r e . m a x ( ) )   i f   p r e s s u r e   i s   n o t   N o n e   a n d   n o t   p r e s s u r e . e m p t y   e l s e   N o n e ,  
-                         ' m i n T e m p e r a t u r e ' :   f l o a t ( t e m p . m i n ( ) )   i f   t e m p   i s   n o t   N o n e   a n d   n o t   t e m p . e m p t y   e l s e   N o n e ,  
-                         ' m a x T e m p e r a t u r e ' :   f l o a t ( t e m p . m a x ( ) )   i f   t e m p   i s   n o t   N o n e   a n d   n o t   t e m p . e m p t y   e l s e   N o n e ,  
-                 }  
- 
+# Append to views.py - LoadSampleDataView
+# Add this at the end of the file
+
+@method_decorator(csrf_exempt, name='dispatch')
+class LoadSampleDataView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        import os
+        from django.conf import settings
+        
+        # Load sample CSV from root of djangobackend
+        sample_path = os.path.join(settings.BASE_DIR, '..', 'sample_equipment_data.csv')
+        
+        try:
+            df = pd.read_csv(sample_path)
+            # Return summary like the upload endpoint does
+            summary = self._get_summary(df)
+            return Response({
+                'message': 'Sample data loaded',
+                'totalCount': len(df),
+                'summary': summary,
+                'data': df.to_dict('records')
+            }, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({'error': f'Failed to load sample data: {str(e)}'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    def _get_summary(self, df):
+        def find_col(key):
+            for c in df.columns:
+                if c.lower() == key.lower():
+                    return df[c]
+            return None
+        
+        flow = find_col('Flowrate')
+        pressure = find_col('Pressure')
+        temp = find_col('Temperature')
+        typ = find_col('Type')
+        
+        return {
+            'totalCount': len(df),
+            'avgFlowrate': float(flow.mean()) if flow is not None and not flow.empty else None,
+            'avgPressure': float(pressure.mean()) if pressure is not None and not pressure.empty else None,
+            'avgTemperature': float(temp.mean()) if temp is not None and not temp.empty else None,
+            'typeDistribution': typ.value_counts().to_dict() if typ is not None else {},
+            'minFlowrate': float(flow.min()) if flow is not None and not flow.empty else None,
+            'maxFlowrate': float(flow.max()) if flow is not None and not flow.empty else None,
+            'minPressure': float(pressure.min()) if pressure is not None and not pressure.empty else None,
+            'maxPressure': float(pressure.max()) if pressure is not None and not pressure.empty else None,
+            'minTemperature': float(temp.min()) if temp is not None and not temp.empty else None,
+            'maxTemperature': float(temp.max()) if temp is not None and not temp.empty else None,
+        }
