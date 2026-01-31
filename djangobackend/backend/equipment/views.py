@@ -20,83 +20,67 @@ import logging
 @method_decorator(csrf_exempt, name='dispatch')
 class UploadCSVView(APIView):
     parser_classes = [MultiPartParser]
-    permission_classes = [AllowAny]  # Allow unauthenticated access for demo purposes
-
+    permission_classes = [AllowAny]  # Allow anonymous uploads
+    
     def post(self, request, *args, **kwargs):
-        # Debug logging
-        logger = logging.getLogger(__name__)
-        logger.info(f"Upload request received. Files: {list(request.FILES.keys())}")
-        
-        file_obj = request.FILES.get('file')
-        if not file_obj:
-            logger.error("No file in request.FILES")
-            return Response({'error': 'No file uploaded'}, status=400)
-        
-        logger.info(f"File received: {file_obj.name}, size: {file_obj.size}")
-        
-        # Validate file extension
-        if not file_obj.name.endswith('.csv'):
-            logger.error(f"Invalid file extension: {file_obj.name}")
-            return Response({'error': 'Only CSV files are allowed'}, status=400)
-        
-        # Save file temporarily with error handling
         try:
-            # Ensure media directories exist
-            media_root = settings.MEDIA_ROOT
-            tmp_dir = os.path.join(media_root, 'tmp')
-            os.makedirs(tmp_dir, exist_ok=True)
+            # Get uploaded file
+            file_obj = request.FILES.get('file')
+            if not file_obj:
+                return Response({'error': 'No file uploaded'}, status=400)
             
-            file_path = default_storage.save('tmp/' + file_obj.name, file_obj)
-            abs_path = os.path.join(settings.MEDIA_ROOT, file_path)
-            logger.info(f"File saved to: {abs_path}")
+            # Validate file extension
+            if not file_obj.name.endswith('.csv'):
+                return Response({'error': 'Only CSV files are allowed'}, status=400)
+            
+            # Parse CSV directly from memory (production-safe)
+            try:
+                # Read file content
+                file_content = file_obj.read()
+                if isinstance(file_content, bytes):
+                    file_content = file_content.decode('utf-8')
+                
+                # Parse with pandas
+                from io import StringIO
+                csv_data = StringIO(file_content)
+                df = pd.read_csv(csv_data)
+                
+            except Exception as e:
+                return Response({'error': f'Failed to parse CSV: {str(e)}'}, status=400)
+            
+            # Validate required columns (case-insensitive)
+            cols = [c.strip().lower() for c in df.columns]
+            required = ['type', 'flowrate', 'pressure', 'temperature']
+            missing = [r for r in required if not any(r == c or r in c for c in cols)]
+            if missing:
+                return Response({'error': f'Missing required columns: {", ".join(missing)}. Found columns: {", ".join(df.columns)}'}, status=400)
+            
+            # Generate summary
+            summary = self.get_summary(df)
+            
+            # Create dataset record (no file storage needed)
+            dataset = EquipmentDataset.objects.create(
+                file_name=file_obj.name,
+                record_count=len(df),
+                summary=summary
+            )
+            
+            # Keep only last 5 datasets
+            if EquipmentDataset.objects.count() > 5:
+                old_datasets = EquipmentDataset.objects.all()[5:]
+                for obj in old_datasets:
+                    obj.delete()
+            
+            return Response({
+                'id': dataset.id,
+                'file_name': dataset.file_name,
+                'record_count': dataset.record_count,
+                'summary': dataset.summary,
+                'uploaded_at': dataset.uploaded_at
+            })
+            
         except Exception as e:
-            logger.error(f"Failed to save file: {str(e)}")
-            return Response({'error': f'Failed to save file: {str(e)}'}, status=400)
-        
-        # Write a small debug snapshot of the uploaded file (first bytes)
-        logger = logging.getLogger(__name__)
-        try:
-            debug_dir = os.path.join(settings.MEDIA_ROOT, 'tmp')
-            os.makedirs(debug_dir, exist_ok=True)
-            preview_name = f"debug_upload_{int(time.time())}_{file_obj.name}.preview"
-            preview_path = os.path.join(debug_dir, preview_name)
-            with open(abs_path, 'rb') as src, open(preview_path, 'wb') as dst:
-                dst.write(src.read(2048))
-            logger.debug('Wrote upload preview to %s', preview_path)
-        except Exception as e:
-            logger.exception('Failed to write upload preview: %s', e)
-        
-        # Parse CSV
-        try:
-            df = pd.read_csv(abs_path)
-        except Exception as e:
-            return Response({'error': f'Failed to parse CSV: {str(e)}'}, status=400)
-        
-        # Validate required columns (case-insensitive)
-        cols = [c.strip().lower() for c in df.columns]
-        # Equipment Name is optional; require only core numeric and type columns
-        required = ['type', 'flowrate', 'pressure', 'temperature']
-        missing = [r for r in required if not any(r == c or r in c for c in cols)]
-        if missing:
-            return Response({'error': f'Missing required columns: {", ".join(missing)}. Found columns: {", ".join(df.columns)}'}, status=400)
-        summary = self.get_summary(df)
-        
-        # Create dataset without user field (removed in migration)
-        dataset = EquipmentDataset.objects.create(
-            file_name=file_obj.name,
-            record_count=len(df),
-            summary=summary,
-            csv_file=file_obj
-        )
-        
-        # Keep only last 5 datasets
-        total_count = EquipmentDataset.objects.count()
-        if total_count > 5:
-            old_datasets = EquipmentDataset.objects.all()[5:]
-            for obj in old_datasets:
-                obj.csv_file.delete()
-                obj.delete()
-        return Response(EquipmentDatasetSerializer(dataset).data)
+            return Response({'error': f'Upload failed: {str(e)}'}, status=500)
 
     def get_summary(self, df):
         # Helper to find a column case-insensitively

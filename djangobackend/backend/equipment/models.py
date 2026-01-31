@@ -5,7 +5,7 @@ class EquipmentDataset(models.Model):
     uploaded_at = models.DateTimeField(auto_now_add=True)
     record_count = models.IntegerField()
     summary = models.JSONField()
-    csv_file = models.FileField(upload_to='datasets/')
+    csv_file = models.FileField(upload_to='datasets/', null=True, blank=True)
 
     class Meta:
         ordering = ['-uploaded_at']
