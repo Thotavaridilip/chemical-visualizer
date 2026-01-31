@@ -292,3 +292,16 @@ class LoadSampleDataView(APIView):
             'minTemperature': float(temp.min()) if temp is not None and not temp.empty else None,
             'maxTemperature': float(temp.max()) if temp is not None and not temp.empty else None,
         }
+
+
+class HealthCheckView(APIView):
+    """Simple health check endpoint to verify deployment."""
+    permission_classes = [AllowAny]
+    
+    def get(self, request):
+        return JsonResponse({
+            'status': 'ok',
+            'message': 'Django backend is running successfully',
+            'timestamp': time.time(),
+            'null_bytes_fixed': True
+        })
