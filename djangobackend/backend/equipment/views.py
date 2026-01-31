@@ -23,6 +23,7 @@ import base64
 class UploadCSVView(APIView):
     parser_classes = [MultiPartParser]
     permission_classes = [AllowAny]  # Allow anonymous uploads
+    authentication_classes = []  # Disable authentication to prevent 403 on invalid tokens
     
     def post(self, request, *args, **kwargs):
         try:
