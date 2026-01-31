@@ -126,11 +126,20 @@ class SummaryView(APIView):
                 return Response({'error': 'Dataset not found'}, status=404)
             return Response(dataset.summary)
         # Try to find a dataset with valid equipment data (has avgFlowrate)
-        for dataset in EquipmentDataset.objects.filter(user=request.user):
+        if request.user.is_authenticated:
+            datasets_to_check = EquipmentDataset.objects.filter(user=request.user)
+        else:
+            datasets_to_check = EquipmentDataset.objects.all()[:10]  # Limit for anonymous users
+            
+        for dataset in datasets_to_check:
             if dataset.summary and dataset.summary.get('avgFlowrate') is not None:
                 return Response(dataset.summary)
-        # Fallback to latest for this user
-        latest = EquipmentDataset.objects.filter(user=request.user).first()
+        
+        # Fallback to latest
+        if request.user.is_authenticated:
+            latest = EquipmentDataset.objects.filter(user=request.user).first()
+        else:
+            latest = EquipmentDataset.objects.first()
         if not latest:
             return Response({'error': 'No data'}, status=404)
         return Response(latest.summary)

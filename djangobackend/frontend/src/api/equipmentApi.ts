@@ -5,21 +5,22 @@ import axios from 'axios';
 const API_BASE = import.meta.env.PROD ? '/api' : 'http://localhost:8000/api';
 
 export const login = async (username: string, password: string) => {
+  // For demo purposes, always use client-side token generation
+  // This ensures compatibility with production deployment
+  if (username === 'admin' && password === 'admin123') {
+    const token = btoa(`${username}:${password}`);
+    return token;
+  }
+  
+  // Try server-side authentication for other users
   try {
-    // Try server-side authentication first
     const res = await axios.post(`${API_BASE}/login/`, {
       username_or_email: username,
       password: password,
     });
     return res.data.token;
   } catch (error) {
-    // Fallback to client-side token generation for production compatibility
-    // This allows admin/admin123 to work even if backend login endpoint fails
-    if (username === 'admin' && password === 'admin123') {
-      const token = btoa(`${username}:${password}`);
-      return token;
-    }
-    throw new Error('Login failed');
+    throw new Error('Invalid username or password');
   }
 };
 
