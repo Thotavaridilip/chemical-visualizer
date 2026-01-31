@@ -20,8 +20,7 @@ import logging
 @method_decorator(csrf_exempt, name='dispatch')
 class UploadCSVView(APIView):
     parser_classes = [MultiPartParser]
-    # Require authentication in production, allow anonymous in development
-    permission_classes = [AllowAny if settings.DEBUG else IsAuthenticated]
+    permission_classes = [AllowAny]  # Allow unauthenticated access for demo purposes
 
     def post(self, request, *args, **kwargs):
         file_obj = request.FILES.get('file')
