@@ -5,6 +5,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework import status
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
+from django.http import JsonResponse
 from .models import EquipmentDataset
 from .serializers import EquipmentDatasetSerializer
 import pandas as pd
@@ -115,6 +116,7 @@ class UploadCSVView(APIView):
 
 class SummaryView(APIView):
     permission_classes = [AllowAny]  # Allow anonymous access for development
+    authentication_classes = []  # Disable authentication to prevent 403
     
     def get(self, request):
         dataset_id = request.query_params.get('id')
@@ -139,6 +141,7 @@ class SummaryView(APIView):
 
 class HistoryView(APIView):
     permission_classes = [AllowAny]
+    authentication_classes = []  # Disable authentication to prevent 403
     def get(self, request):
         # Return recent datasets (user field no longer exists)
         qs = EquipmentDataset.objects.all()[:5]
@@ -146,6 +149,7 @@ class HistoryView(APIView):
 
 class DataView(APIView):
     permission_classes = [AllowAny]  # Allow anonymous access for development
+    authentication_classes = []  # Disable authentication to prevent 403
 
     def get(self, request):
         dataset_id = request.query_params.get('id')
@@ -256,6 +260,7 @@ class LoginView(APIView):
 @method_decorator(csrf_exempt, name='dispatch')
 class LoadSampleDataView(APIView):
     permission_classes = [AllowAny]
+    authentication_classes = []  # Disable authentication to prevent 403 on invalid tokens
 
     def get(self, request):
         import os
@@ -307,6 +312,7 @@ class LoadSampleDataView(APIView):
 class HealthCheckView(APIView):
     """Simple health check endpoint to verify deployment."""
     permission_classes = [AllowAny]
+    authentication_classes = []  # Disable authentication to prevent 403
     
     def get(self, request):
         return JsonResponse({

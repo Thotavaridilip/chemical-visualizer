@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { EquipmentData, DataSummary, UploadHistory } from '@/types/equipment';
-import { uploadCSV, uploadCSVAnonymous, getSummary, getHistory, downloadPDF } from '@/api/equipmentApi';
+import { uploadCSV, uploadCSVAnonymous, getSummary, getHistory, getHistoryAnonymous, downloadPDF, loadSampleData as loadSampleDataApi } from '@/api/equipmentApi';
 import { useAuth } from '@/contexts/AuthContext';
 
 export const useEquipmentData = () => {
@@ -46,9 +46,13 @@ export const useEquipmentData = () => {
   }, [token]);
 
   const loadHistory = useCallback(async () => {
-    if (!token) return;
     try {
-      const result = await getHistory(token);
+      let result;
+      if (token) {
+        result = await getHistory(token);
+      } else {
+        result = await getHistoryAnonymous();
+      }
       setUploadHistory(result.map((item: any) => ({
         id: item.id?.toString() ?? String(Math.random()),
         fileName: item.file_name,
@@ -57,7 +61,7 @@ export const useEquipmentData = () => {
         summary: item.summary,
       })));
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load history');
+      console.warn('Failed to load history:', err);
     }
   }, [token]);
 
@@ -82,8 +86,41 @@ export const useEquipmentData = () => {
     }
   }, [token]);
 
-  const loadSampleData = useCallback(() => {
-    setError('Sample data loading not implemented with API');
+  const loadSampleData = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const result = await loadSampleDataApi();
+      
+      // Parse the data from backend response
+      const backendData = result.data || [];
+      const equipmentData: EquipmentData[] = backendData.map((item: any, index: number) => ({
+        id: String(index),
+        equipmentName: item['Equipment Name'] || '',
+        type: item['Type'] || '',
+        flowrate: item['Flowrate'] || 0,
+        pressure: item['Pressure'] || 0,
+        temperature: item['Temperature'] || 0,
+      }));
+
+      setData(equipmentData);
+      setSummary(result.summary);
+
+      // Add to local history
+      const historyEntry: UploadHistory = {
+        id: `sample-${Date.now()}`,
+        fileName: 'sample_equipment_data.csv',
+        uploadedAt: new Date(),
+        recordCount: result.totalCount || equipmentData.length,
+        summary: result.summary,
+      };
+
+      setUploadHistory((prev) => [historyEntry, ...prev].slice(0, 5));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load sample data');
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
 
   const clearData = useCallback(() => {

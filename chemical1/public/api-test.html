@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>API Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body>
+    <h1>Chemical Equipment API Test</h1>
+    <button onclick="testLoadSample()">Test Load Sample</button>
+    <button onclick="testHealth()">Test Health</button>
+    <button onclick="testHistory()">Test History</button>
+    <pre id="result" style="background: #f0f0f0; padding: 20px; margin: 20px 0;"></pre>
+    
+    <script>
+        const API_BASE = 'http://localhost:8000/api';
+        
+        async function testLoadSample() {
+            document.getElementById('result').textContent = 'Loading...';
+            try {
+                const response = await axios.get(`${API_BASE}/load-sample/`);
+                document.getElementById('result').textContent = JSON.stringify(response.data, null, 2);
+            } catch (error) {
+                document.getElementById('result').textContent = 'Error: ' + (error.response?.data?.error || error.message);
+            }
+        }
+        
+        async function testHealth() {
+            document.getElementById('result').textContent = 'Loading...';
+            try {
+                const response = await axios.get(`${API_BASE}/health/`);
+                document.getElementById('result').textContent = JSON.stringify(response.data, null, 2);
+            } catch (error) {
+                document.getElementById('result').textContent = 'Error: ' + (error.response?.data?.error || error.message);
+            }
+        }
+        
+        async function testHistory() {
+            document.getElementById('result').textContent = 'Loading...';
+            try {
+                const response = await axios.get(`${API_BASE}/history/`);
+                document.getElementById('result').textContent = JSON.stringify(response.data, null, 2);
+            } catch (error) {
+                document.getElementById('result').textContent = 'Error: ' + (error.response?.data?.error || error.message);
+            }
+        }
+    </script>
+</body>
+</html>

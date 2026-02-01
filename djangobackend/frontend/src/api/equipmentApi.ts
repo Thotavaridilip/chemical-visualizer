@@ -63,6 +63,11 @@ export const getHistory = async (token: string) => {
   return res.data;
 };
 
+export const getHistoryAnonymous = async () => {
+  const res = await axios.get(`${API_BASE}/history/`);
+  return res.data;
+};
+
 export const downloadPDF = async (token: string) => {
   const res = await axios.get(`${API_BASE}/report/`, {
     headers: { Authorization: `Basic ${token}` },
